@@ -68,6 +68,13 @@ your instances.
 
 1. **Check the "Target List" in Prometheus web interface to see scrape status.**
 
+
+## How to chart a metric from Prometheus in Grafana
+
+1. Login to grafana
+
+1. Create a dashboard or add a panel to an existing one and add your query.
+
 [java-client]: https://github.com/prometheus/client_java
 [other-clients]: https://prometheus.io/docs/instrumenting/clientlibs/
 [prom-format]: https://github.com/prometheus/docs/blob/master/content/docs/instrumenting/exposition_formats.md
