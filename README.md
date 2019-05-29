@@ -14,6 +14,9 @@ for learning and experimentation.
 All of the components are free and open source. A benefit of using open source
 software is that we are not restricted by licensing.
 
+Inspired by https://github.com/vegasbrianc/prometheus
+
+
 ## Installation
 
 See [INSTALL.md](INSTALL.md)
