@@ -1,0 +1,99 @@
+# my global config
+global:
+  scrape_interval:     15s # By default, scrape targets every 15 seconds.
+  evaluation_interval: 15s # By default, scrape targets every 15 seconds.
+  # scrape_timeout is set to the global default (10s).
+
+  # Attach these labels to any time series or alerts when communicating with
+  # external systems (federation, remote storage, Alertmanager).
+  external_labels:
+      monitor: 'my-project'
+
+# Load and evaluate rules in this file every 'evaluation_interval' seconds.
+rule_files:
+  - 'alert.rules'
+  # - "first.rules"
+  # - "second.rules"
+
+# alert
+alerting:
+  alertmanagers:
+  - scheme: http
+    static_configs:
+    - targets:
+      - "alertmanager:9093"
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+
+  - job_name: 'prometheus'
+
+    # Override the global default and scrape targets from this job every 5 seconds.
+    scrape_interval: 5s
+
+    static_configs:
+         - targets: ['localhost:9090']
+
+  - job_name: 'grafana'
+
+    # Override the global default and scrape targets from this job every 5 seconds.
+    scrape_interval: 5s
+
+    static_configs:
+         - targets: ['localhost:3000']
+
+
+  - job_name: 'blackbox'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]  # Look for a HTTP 200 response.
+    static_configs:
+      - targets:
+        - http://localhost/
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox_exporter:9115  # The blackbox exporter's real hostname:port.
+
+  - job_name: 'applications'
+    ec2_sd_configs:
+
+      # In order for Pormetheus to detect/scrape EC2 instances,
+      # Set AWS Tags:
+      #   prometheus_port: 80
+      #   prometheus_path: /diagnostic/metrics
+
+      - region: ap-southeast-2
+
+        # Refresh interval to re-read the instance list.
+        # refresh_interval: 60s
+
+    relabel_configs:
+
+        # Only monitoring instances in same vpc based on __meta_ec2_vpc_id
+
+        # Only monitor instances with Tag named `prometheus_endpoint`
+      - source_labels: [__meta_ec2_tag_prometheus_path]
+        regex: (.+)
+        action: keep
+
+      - source_labels: [__meta_ec2_tag_prometheus_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+
+      - source_labels: [__address__, __meta_ec2_tag_prometheus_port]
+        separator:     ';'
+        regex: '(.*):80;(.*)'
+        target_label: __address__
+        replacement: ${1}:${2}
+
+        # Use the instance ID as the instance label
+      - source_labels: [__meta_ec2_instance_id]
+        target_label: instance
+

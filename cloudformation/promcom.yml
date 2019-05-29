@@ -1,0 +1,491 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Run Prometheus.io monitoring server using Docker compose
+
+Parameters:
+
+  DisableApiTermination:
+    Description: Protect your data
+    Default: 'false'
+    Type: String
+
+  HostName:
+    Description: Defaults to "${AWS::StackName}.${HostedZoneName}"
+    Type: String
+    Default: ''
+
+  HostedZoneName:
+    Description: Route53 record pointing at ELB is created if provided
+    Type: String
+    Default: ''
+
+  ELBSubnetId:
+    Type: String
+    Default: ''
+
+  ImageId:
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+
+  InstanceSubnetId:
+    Type: String
+    Default: ''
+
+  InstanceType:
+    Type: String
+    Default: t2.medium
+
+  KeyName:
+    Type: String
+    Default: promcom-keypair
+
+  VpcId:
+    Type: String
+    Default: ''
+
+  SSLCertificateId:
+    Type: String
+    Default: ''
+
+  TrustedCIDR1:
+    Type: String
+    Default: ''
+
+  TrustedCIDR2:
+    Type: String
+    Default: ''
+
+
+Conditions:
+  # https://mike.bailey.net.au/2018/11/semantic-cloudformation-parameter-values/
+  ImportELBSubnetId: !Equals [ "import", !Select [0, !Split [ ":", !Ref ELBSubnetId ] ] ]
+  ImportInstanceSubnetId: !Equals [ "import", !Select [ 0, !Split [":", !Ref InstanceSubnetId ] ] ]
+  ImportVpcId: !Equals [ "import", !Select [ 0, !Split [":", !Ref VpcId ] ] ]
+  ImportTrustedCIDR1: !Equals [ "import", !Select [ 0, !Split [":", !Ref TrustedCIDR1 ] ] ]
+  ImportTrustedCIDR2: !Equals [ "import", !Select [ 0, !Split [":", !Ref TrustedCIDR2 ] ] ]
+
+  UseHostName: !Not [ !Equals [ !Ref HostName, '' ]]
+  UseHostedZoneName: !Not [ !Equals [ !Ref HostedZoneName, '' ]]
+  UseTrustedCIDR1: !Not [ !Equals [ !Ref TrustedCIDR1, '' ]]
+  UseTrustedCIDR2: !Not [ !Equals [ !Ref TrustedCIDR2, '' ]]
+
+
+Resources:
+  # Later, add ASG and persistent EBS volume
+
+  ELB:
+    Type: AWS::ElasticLoadBalancing::LoadBalancer
+    Properties:
+      Subnets:
+        - !If
+          - ImportELBSubnetId
+          - Fn::ImportValue: !Select [ 1, !Split [ ":", !Ref ELBSubnetId ] ]
+          - !Ref ELBSubnetId
+      HealthCheck:
+        HealthyThreshold: '10'
+        Interval: '30'
+        Target: TCP:22
+        Timeout: '5'
+        UnhealthyThreshold: '2'
+      ConnectionDrainingPolicy:
+        Enabled: 'true'
+        Timeout: '60'
+      ConnectionSettings:
+        IdleTimeout: '300'
+      Instances:
+        - !Ref 'Instance'
+      SecurityGroups:
+        - !Ref 'ELBSecurityGroup'
+      Listeners:
+        - InstancePort: '9093'
+          LoadBalancerPort: '9093'
+          Protocol: HTTPS
+          InstanceProtocol: HTTP
+          SSLCertificateId: !Ref SSLCertificateId
+          PolicyNames:
+            - ELBSecurityPolicy-2016-08
+        - InstancePort: '22'
+          LoadBalancerPort: '22'
+          Protocol: TCP
+          InstanceProtocol: TCP
+        - InstancePort: '9115'
+          LoadBalancerPort: '9115'
+          Protocol: HTTPS
+          InstanceProtocol: HTTP
+          SSLCertificateId: !Ref SSLCertificateId
+          PolicyNames:
+            - ELBSecurityPolicy-2016-08
+        - InstancePort: '3000'
+          LoadBalancerPort: '3000'
+          Protocol: HTTPS
+          InstanceProtocol: HTTP
+          SSLCertificateId: !Ref SSLCertificateId
+          PolicyNames:
+            - ELBSecurityPolicy-2016-08
+        - InstancePort: '80'
+          LoadBalancerPort: '443'
+          Protocol: HTTPS
+          InstanceProtocol: HTTP
+          SSLCertificateId: !Ref SSLCertificateId
+          PolicyNames:
+            - ELBSecurityPolicy-2016-08
+        - InstancePort: '9090'
+          LoadBalancerPort: '9090'
+          Protocol: HTTPS
+          InstanceProtocol: HTTP
+          SSLCertificateId: !Ref SSLCertificateId
+          PolicyNames:
+            - ELBSecurityPolicy-2016-08
+
+  ELBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: PromCom ELB
+      VpcId: !If
+        - ImportVpcId
+        - Fn::ImportValue: !Select [ 1, !Split [ ":", !Ref VpcId ] ]
+        - !Ref VpcId
+
+  # Permit from trusted networks:
+  #     - 22   SSH
+  #     - 443  Nginx [index page and exposition test file]
+  #     - 3000 Grafana
+  #     - 9090 Prometheus
+  #     - 9093 Alertmanager
+  #     - 9115 Blackbox-expoerter
+
+  ELBSgTrustedCIDR1Ingress1: # SSH
+    Type: AWS::EC2::SecurityGroupIngress
+    Condition: UseTrustedCIDR1
+    Properties:
+      GroupId: !Ref 'ELBSecurityGroup'
+      IpProtocol: tcp
+      FromPort: '22'
+      ToPort: '22'
+      CidrIp: !If
+        - ImportTrustedCIDR1
+        - Fn::ImportValue: !Select [ 1, !Split [ ":", !Ref TrustedCIDR1 ] ]
+        - !Ref TrustedCIDR1
+
+  ELBSgTrustedCIDR2Ingress1: # SSH
+    Type: AWS::EC2::SecurityGroupIngress
+    Condition: UseTrustedCIDR2
+    Properties:
+      GroupId: !Ref 'ELBSecurityGroup'
+      IpProtocol: tcp
+      FromPort: '22'
+      ToPort: '22'
+      CidrIp: !If
+        - ImportTrustedCIDR2
+        - Fn::ImportValue: !Select [ 1, !Split [ ":", !Ref TrustedCIDR2 ] ]
+        - !Ref TrustedCIDR2
+
+  ELBSgTrustedCIDR1Ingress2: # Nginx
+    Type: AWS::EC2::SecurityGroupIngress
+    Condition: UseTrustedCIDR1
+    Properties:
+      GroupId: !Ref 'ELBSecurityGroup'
+      IpProtocol: tcp
+      FromPort: '443'
+      ToPort: '443'
+      CidrIp: !If
+        - ImportTrustedCIDR1
+        - Fn::ImportValue: !Select [ 1, !Split [ ":", !Ref TrustedCIDR1 ] ]
+        - !Ref TrustedCIDR1
+
+  ELBSgTrustedCIDR2Ingress2: # Nginx
+    Type: AWS::EC2::SecurityGroupIngress
+    Condition: UseTrustedCIDR2
+    Properties:
+      GroupId: !Ref 'ELBSecurityGroup'
+      IpProtocol: tcp
+      FromPort: '443'
+      ToPort: '443'
+      CidrIp: !If
+        - ImportTrustedCIDR2
+        - Fn::ImportValue: !Select [ 1, !Split [ ":", !Ref TrustedCIDR2 ] ]
+        - !Ref TrustedCIDR2
+
+  ELBSgTrustedCIDR1Ingress3: # Grafana
+    Type: AWS::EC2::SecurityGroupIngress
+    Condition: UseTrustedCIDR1
+    Properties:
+      GroupId: !Ref 'ELBSecurityGroup'
+      IpProtocol: tcp
+      FromPort: '3000'
+      ToPort: '3000'
+      CidrIp: !If
+        - ImportTrustedCIDR1
+        - Fn::ImportValue: !Select [ 1, !Split [ ":", !Ref TrustedCIDR1 ] ]
+        - !Ref TrustedCIDR1
+
+  ELBSgTrustedCIDR2Ingress3: # Grafana
+    Type: AWS::EC2::SecurityGroupIngress
+    Condition: UseTrustedCIDR2
+    Properties:
+      GroupId: !Ref 'ELBSecurityGroup'
+      IpProtocol: tcp
+      FromPort: '3000'
+      ToPort: '3000'
+      CidrIp: !If
+        - ImportTrustedCIDR2
+        - Fn::ImportValue: !Select [ 1, !Split [ ":", !Ref TrustedCIDR2 ] ]
+        - !Ref TrustedCIDR2
+
+  ELBSgTrustedCIDR1Ingress4: # Prometheus
+    Type: AWS::EC2::SecurityGroupIngress
+    Condition: UseTrustedCIDR1
+    Properties:
+      GroupId: !Ref 'ELBSecurityGroup'
+      IpProtocol: tcp
+      FromPort: '9090'
+      ToPort: '9090'
+      CidrIp: !If
+        - ImportTrustedCIDR1
+        - Fn::ImportValue: !Select [ 1, !Split [ ":", !Ref TrustedCIDR1 ] ]
+        - !Ref TrustedCIDR1
+
+  ELBSgTrustedCIDR2Ingress4: # Prometheus
+    Type: AWS::EC2::SecurityGroupIngress
+    Condition: UseTrustedCIDR2
+    Properties:
+      GroupId: !Ref 'ELBSecurityGroup'
+      IpProtocol: tcp
+      FromPort: '9090'
+      ToPort: '9090'
+      CidrIp: !If
+        - ImportTrustedCIDR2
+        - Fn::ImportValue: !Select [ 1, !Split [ ":", !Ref TrustedCIDR2 ] ]
+        - !Ref TrustedCIDR2
+
+  ELBSgTrustedCIDR1Ingress5: # Alertmanager
+    Type: AWS::EC2::SecurityGroupIngress
+    Condition: UseTrustedCIDR1
+    Properties:
+      GroupId: !Ref 'ELBSecurityGroup'
+      IpProtocol: tcp
+      FromPort: '9093'
+      ToPort: '9093'
+      CidrIp: !If
+        - ImportTrustedCIDR1
+        - Fn::ImportValue: !Select [ 1, !Split [ ":", !Ref TrustedCIDR1 ] ]
+        - !Ref TrustedCIDR1
+
+  ELBSgTrustedCIDR2Ingress5: # Alertmanager
+    Type: AWS::EC2::SecurityGroupIngress
+    Condition: UseTrustedCIDR2
+    Properties:
+      GroupId: !Ref 'ELBSecurityGroup'
+      IpProtocol: tcp
+      FromPort: '9093'
+      ToPort: '9093'
+      CidrIp: !If
+        - ImportTrustedCIDR2
+        - Fn::ImportValue: !Select [ 1, !Split [ ":", !Ref TrustedCIDR2 ] ]
+        - !Ref TrustedCIDR2
+
+  ELBSgTrustedCIDR1Ingress6: # Blackbox-exporter
+    Type: AWS::EC2::SecurityGroupIngress
+    Condition: UseTrustedCIDR1
+    Properties:
+      GroupId: !Ref 'ELBSecurityGroup'
+      IpProtocol: tcp
+      FromPort: '9115'
+      ToPort: '9115'
+      CidrIp: !If
+        - ImportTrustedCIDR1
+        - Fn::ImportValue: !Select [ 1, !Split [ ":", !Ref TrustedCIDR1 ] ]
+        - !Ref TrustedCIDR1
+
+  ELBSgTrustedCIDR2Ingress6: # Blackbox-exporter
+    Type: AWS::EC2::SecurityGroupIngress
+    Condition: UseTrustedCIDR2
+    Properties:
+      GroupId: !Ref 'ELBSecurityGroup'
+      IpProtocol: tcp
+      FromPort: '9115'
+      ToPort: '9115'
+      CidrIp: !If
+        - ImportTrustedCIDR2
+        - Fn::ImportValue: !Select [ 1, !Split [ ":", !Ref TrustedCIDR2 ] ]
+        - !Ref TrustedCIDR2
+
+  ELBSgEgress1:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !Ref 'ELBSecurityGroup'
+      IpProtocol: '-1'
+      CidrIp: '0.0.0.0/0'
+
+  Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      DisableApiTermination: !Ref DisableApiTermination
+      IamInstanceProfile: !Ref IamInstanceProfile
+      ImageId: !Ref ImageId
+      InstanceInitiatedShutdownBehavior: stop
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      Monitoring: 'false'
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: false
+          DeleteOnTermination: 'true'
+          Description: Primary network interface
+          DeviceIndex: 0
+          SubnetId: !If
+            - ImportInstanceSubnetId
+            - Fn::ImportValue: !Select [ 1, !Split [ ":", !Ref InstanceSubnetId ] ]
+            - !Ref InstanceSubnetId
+          GroupSet:
+            - !Ref 'InstanceSecurityGroup'
+      Tags:
+        - Key: Name
+          Value: !Ref AWS::StackName
+        - Key: prometheus_port
+          Value: '80'
+        - Key: prometheus_path
+          Value: '/metrics'
+
+  IamInstanceProfile: # arn:aws:iam::387465778145:role/prometheus-instance
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        -  !Ref IamRole
+
+  IamRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "ec2.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess
+      Policies:
+        -
+          PolicyName: "cloudwatch" # https://grafana.com/docs/features/datasources/cloudwatch/
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: AllowReadingMetricsFromCloudWatch
+                Effect: Allow
+                Action:
+                  - cloudwatch:ListMetrics
+                  - cloudwatch:GetMetricStatistics
+                  - cloudwatch:GetMetricData
+                Resource: '*'
+              - Sid: AllowReadingTagsInstancesRegionsFromEC2
+                Effect: Allow
+                Action:
+                  - ec2:DescribeTags
+                  - ec2:DescribeInstances
+                  - ec2:DescribeRegions
+                Resource: '*'
+              - Sid: AllowReadingResourcesForTags
+                Effect: Allow
+                Action: tag:GetResources
+                Resource: '*'
+
+  # Permit from ELB:
+  #   - 22   SSH
+  #   - 80   Nginx
+  #   - 3000 Grafana
+  #   - 9090 Prometheus
+  #   - 9093 Alertmanager
+  #   - 9115 Blackbox-exporter
+
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: PromCom Instance
+      VpcId: !If
+        - ImportVpcId
+        - Fn::ImportValue: !Select [ 1, !Split [ ":", !Ref VpcId ] ]
+        - !Ref VpcId
+
+  InstanceSgELBIngress1: # SSH
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref 'InstanceSecurityGroup'
+      IpProtocol: tcp
+      FromPort: '22'
+      ToPort: '22'
+      SourceSecurityGroupId: !Ref 'ELBSecurityGroup'
+
+  InstanceSgELBIngress2: # Nginx
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref 'InstanceSecurityGroup'
+      IpProtocol: tcp
+      FromPort: '80'
+      ToPort: '80'
+      SourceSecurityGroupId: !Ref 'ELBSecurityGroup'
+
+  InstanceSgELBIngress3: # Grafana
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref 'InstanceSecurityGroup'
+      IpProtocol: tcp
+      FromPort: '3000'
+      ToPort: '3000'
+      SourceSecurityGroupId: !Ref 'ELBSecurityGroup'
+
+  InstanceSgELBIngress4: # Prometheus
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref 'InstanceSecurityGroup'
+      IpProtocol: tcp
+      FromPort: '9090'
+      ToPort: '9090'
+      SourceSecurityGroupId: !Ref 'ELBSecurityGroup'
+
+  InstanceSgELBIngress5: # Alertmanager
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref 'InstanceSecurityGroup'
+      IpProtocol: tcp
+      FromPort: '9093'
+      ToPort: '9093'
+      SourceSecurityGroupId: !Ref 'ELBSecurityGroup'
+
+  InstanceSgELBIngress6: # Blackbox-exporter
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref 'InstanceSecurityGroup'
+      IpProtocol: tcp
+      FromPort: '9115'
+      ToPort: '9115'
+      SourceSecurityGroupId: !Ref 'ELBSecurityGroup'
+
+  InstanceSgEgress1:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !Ref 'InstanceSecurityGroup'
+      IpProtocol: '-1'
+      CidrIp: '0.0.0.0/0'
+
+  Route53RecordSet:
+    Condition: UseHostedZoneName
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: !Ref HostedZoneName
+      Name: !If
+        - UseHostName
+        - !Sub "${HostName}.${HostedZoneName}"
+        - !Sub "${AWS::StackName}.${HostedZoneName}"
+      Type: A
+      AliasTarget:
+        HostedZoneId: !GetAtt 'ELB.CanonicalHostedZoneNameID'
+        DNSName: !GetAtt 'ELB.DNSName'
+
+Outputs:
+  IndexURL:
+    Description: Web page linking to all the services
+    Value: !Sub "https://${Route53RecordSet}/"
+  SecurityGroup:
+    Description: PromCom Instance Security Group
+    Value: !Ref InstanceSecurityGroup

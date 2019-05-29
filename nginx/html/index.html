@@ -1,0 +1,42 @@
+<!doctype html>
+<html class="no-js" lang="">
+
+<head>
+  <meta charset="utf-8">
+  <title>PromCom - Prometheus & Friends</title>
+  <meta name="description" content="">
+  <!-- Place favicon.ico in the root directory -->
+</head>
+
+<body>
+  <h1>PromCom - Prometheus & Friends</h1>
+  <p>A number of services are running (on different ports) on this host:
+  <ul>
+    <script language="JavaScript">
+    document.write('<li><a href="' + window.location.protocol + '//' + window.location.hostname + ':3000'         + '" >Grafana</a></li> ' );
+    document.write('<li><a href="' + window.location.protocol + '//' + window.location.hostname + ':9090'         + '" >Prometheus</a></li> ' );
+    document.write('<li><a href="' + window.location.protocol + '//' + window.location.hostname + ':9093'         + '" >Alertmanager</a></li> ' );
+    document.write('<li><a href="' + window.location.protocol + '//' + window.location.hostname + ':9115'         + '" >Blackbox exporter</a></li> ' );
+    document.write('<li><a href="' + window.location.protocol + '//' + window.location.hostname + ':443/metrics'  + '" >Nginx /metrics</a></li> ' );
+    </script>
+  </ul>
+
+<script>
+// delegate event for performance, and save attaching a million events to each anchor
+document.addEventListener('click', function(event) {
+  var target = event.target;
+  if (target.tagName.toLowerCase() == 'a')
+  {
+      var port = target.getAttribute('href').match(/^:(\d+)(.*)/);
+      if (port)
+      {
+         target.href = window.location.origin;
+         target.port = port[1];
+      }
+  }
+}, false);
+</script>
+
+</body>
+
+</html>

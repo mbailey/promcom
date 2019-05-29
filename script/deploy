@@ -1,0 +1,39 @@
+#!/bin/bash
+set -eu -o pipefail
+
+# Load ENV vars from config file
+#
+# PROMCOM_TARGET_HOST=example.com
+# PROMCOM_SSH_PRIVATE_KEY="${HOME}/.ssh/example-key"
+#
+config_file="${1:-}"
+if [[ -f $config_file ]]; then
+  shift 1
+  export $(cat "$config_file")
+else
+  echo >&2 "Usage: $0 config/TARGET_FILE [command to run]"
+  exit 1
+fi
+
+echo
+echo "# Syncing this repo with promcom ec2 instance"
+rsync -avz                                                                     \
+  --exclude .git                                                               \
+  -e "ssh -o 'IdentitiesOnly yes' -o 'IdentityFile $PROMCOM_SSH_PRIVATE_KEY' " \
+  .                                                                            \
+  ec2-user@${PROMCOM_TARGET_HOST}:promcom/
+
+# Install docker and friends
+if [[ ${1:-} == '--provision' || ${1:-} == '-p' ]]; then
+  echo
+  echo "# Installing docker-compose and friends..."
+  ./script/promcom-ssh "$config_file" sudo bash promcom/script/install-docker.sh
+fi
+
+echo
+echo "# Running docker-compose up"
+./script/promcom-ssh "$config_file" docker-compose --file promcom/docker-compose.yml up --detach
+
+echo "# Reloading prometheus config"
+curl -v -XPOST "https://${PROMCOM_TARGET_HOST}:9115/-/reload"
+curl -v -XPOST "https://${PROMCOM_TARGET_HOST}:9090/-/reload"

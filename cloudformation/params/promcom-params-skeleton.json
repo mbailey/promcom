@@ -1,0 +1,50 @@
+[
+  {
+    "ParameterKey": "DisableApiTermination",
+    "ParameterValue": "true"
+  },
+  {
+    "ParameterKey": "ELBSubnetId",
+    "ParameterValue": ""
+  },
+  {
+    "ParameterKey": "HostName",
+    "ParameterValue": "metrics"
+  },
+  {
+    "ParameterKey": "HostedZoneName",
+    "ParameterValue": "example.com."
+  },
+  {
+    "ParameterKey": "ImageId",
+    "ParameterValue": "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
+  },
+  {
+    "ParameterKey": "InstanceSubnetId",
+    "ParameterValue": ""
+  },
+  {
+    "ParameterKey": "InstanceType",
+    "ParameterValue": "t2.medium"
+  },
+  {
+    "ParameterKey": "KeyName",
+    "ParameterValue": ""
+  },
+  {
+    "ParameterKey": "SSLCertificateId",
+    "ParameterValue": ""
+  },
+  {
+    "ParameterKey": "TrustedCIDR1",
+    "ParameterValue": ""
+  },
+  {
+    "ParameterKey": "TrustedCIDR2",
+    "ParameterValue": ""
+  },
+  {
+    "ParameterKey": "VpcId",
+    "ParameterValue": ""
+  }
+]

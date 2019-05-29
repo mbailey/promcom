@@ -1,0 +1,25 @@
+#!/bin/bash
+set -eu -o pipefail
+
+# ssh - connect to a promcom EC2 instance
+#
+# Usage: ./script/ssh config/example-target-config [command to run]
+
+# Load ENV vars from config file
+#
+# PROMCOM_TARGET_HOST=example.com
+# PROMCOM_SSH_PRIVATE_KEY="${HOME}/.ssh/example-key"
+#
+config_file="${1:-}"
+if [[ -f $config_file ]]; then
+  shift 1
+  export $(cat "$config_file")
+else
+  echo >&2 "Usage: ./script/ssh config/TARGET_FILE [command to run]"
+  exit 1
+fi
+
+ssh                                        \
+  -o "IdentitiesOnly yes"                  \
+  -o "IdentityFile $PROMCOM_SSH_PRIVATE_KEY" \
+  "ec2-user@$PROMCOM_TARGET_HOST" $*

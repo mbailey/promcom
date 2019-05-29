@@ -1,0 +1,80 @@
+version: '3.1'
+
+volumes:
+    prometheus_data: {}
+    grafana_data: {}
+
+networks:
+  front-tier:
+  back-tier:
+
+services:
+
+  prometheus:
+    image: prom/prometheus # :v2.1.0
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/config.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    links:
+      - alertmanager:alertmanager
+      - blackbox_exporter
+    ports:
+      - 9090:9090
+    networks:
+      - back-tier
+    restart: always
+
+  grafana:
+    image: grafana/grafana
+    user: "104"
+    depends_on:
+      - prometheus
+    ports:
+      - 3000:3000
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning/:/etc/grafana/provisioning/
+    env_file:
+      - ./grafana/config.env
+    networks:
+      - back-tier
+      - front-tier
+    restart: always
+
+  alertmanager:
+    image: prom/alertmanager
+    ports:
+      - 9093:9093
+    volumes:
+      - ./alertmanager/:/etc/alertmanager/
+    networks:
+      - back-tier
+    restart: always
+    command:
+      - '--config.file=/etc/alertmanager/config.yml'
+      - '--storage.path=/alertmanager'
+
+  blackbox_exporter:
+    image: prom/blackbox-exporter
+    dns: 1.1.1.1
+    restart: always
+    ports:
+      - 9115:9115
+    volumes:
+      - ./blackbox:/blackbox
+    networks:
+      - back-tier
+    command: --config.file=/blackbox/config.yml
+
+  nginx_static:
+    image: nginx
+    ports:
+      - 80:80
+    volumes:
+      - ./nginx/html:/usr/share/nginx/html:ro

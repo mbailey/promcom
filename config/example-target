@@ -1,0 +1,2 @@
+PROMCOM_TARGET_HOST=metrics.example.com
+PROMCOM_SSH_PRIVATE_KEY="~/.ssh/promcom-example"

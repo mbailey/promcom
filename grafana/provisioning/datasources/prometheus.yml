@@ -1,0 +1,28 @@
+# [config ref](https://github.com/grafana/grafana/blob/c87b2c9913c03c6543e5965a3c7884f4217506ce/docs/sources/administration/provisioning.md)
+
+# config file version
+apiVersion: 1
+
+# list of datasources that should be deleted from the database
+deleteDatasources:
+  - name: Prometheus
+    orgId: 1
+
+# list of datasources to insert/update depending
+# whats available in the database
+datasources:
+
+- name: Prometheus
+  type: prometheus
+  access: proxy
+  orgId: 1
+  url: http://prometheus:9090
+  basicAuth: true
+  basicAuthUser: admin
+  basicAuthPassword: foobar
+  isDefault: true
+  jsonData:
+     tlsAuth: false
+     tlsAuthWithCACert: false
+  version: 1
+  editable: true

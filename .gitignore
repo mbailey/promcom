@@ -1,0 +1,6 @@
+.vscode/launch.json
+config/*
+!config/.gitkeep
+!config/example-target
+cloudformation/params/*
+!cloudformation/params/promcom-params-skeleton.json

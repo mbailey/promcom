@@ -1,0 +1,23 @@
+# [config ref](https://github.com/grafana/grafana/blob/c87b2c9913c03c6543e5965a3c7884f4217506ce/docs/sources/administration/provisioning.md)
+
+# config file version
+apiVersion: 1
+
+# list of datasources that should be deleted from the database
+deleteDatasources:
+  - name: CloudWatch
+    orgId: 1
+
+# list of datasources to insert/update depending
+# whats available in the database
+datasources:
+
+- name: CloudWatch
+  type: cloudwatch
+  access: proxy
+  orgId: 1
+  jsonData:
+    defaultRegion: "ap-southeast-2"
+    # customMetricsNamespaces: BLAH
+  version: 1
+  editable: true

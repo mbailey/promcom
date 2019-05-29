@@ -1,0 +1,9 @@
+# HELP service_happiness_rating How happy the service with things generally
+# TYPE service_happiness_rating gauge
+service_happiness_rating{} 6
+# HELP staff_happiness Because we care
+# TYPE staff_happiness gauge
+staff_happiness{team="security", member="alice"} 10
+staff_happiness{team="security", member="bob"} 15
+staff_happiness{team="security", member="carol"} 14
+staff_happiness{team="systems", member="dan"} 11
