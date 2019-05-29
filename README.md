@@ -72,21 +72,3 @@ your instances.
 [other-clients]: https://prometheus.io/docs/instrumenting/clientlibs/
 [prom-format]: https://github.com/prometheus/docs/blob/master/content/docs/instrumenting/exposition_formats.md
 
-
-## TODO
-
-- restrict ec2_sd to same VPC
-- keypair-create can upload existing key if it finds or is given one
-- PushGateway
-- KMS encrypt passwords
-
-
-## Questions
-
-- how to use grafana when we have prometheus in each AZ?
-  - https://community.grafana.com/t/recommended-ha-setup/1526
-  - https://github.com/prometheus/prometheus/issues/1500
-
-
-## Things to check out
-- https://eng.uber.com/m3/?utm_source=hacker_news&utm_medium=Social&utm_campaign=SocW
