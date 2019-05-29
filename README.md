@@ -71,9 +71,9 @@ your instances.
 
 ## How to chart a metric from Prometheus in Grafana
 
-1. Login to grafana
+1. Login to Grafana (default login is admin/foobar)
 
-1. Create a dashboard or add a panel to an existing one and add your query.
+1. Create a dashboard or add a panel to an existing dashboard and create your chart.
 
 [java-client]: https://github.com/prometheus/client_java
 [other-clients]: https://prometheus.io/docs/instrumenting/clientlibs/
