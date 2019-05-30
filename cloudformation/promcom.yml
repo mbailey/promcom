@@ -20,7 +20,6 @@ Parameters:
 
   ELBSubnetId:
     Type: String
-    Default: ''
 
   ImageId:
     Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
@@ -28,7 +27,6 @@ Parameters:
 
   InstanceSubnetId:
     Type: String
-    Default: ''
 
   InstanceType:
     Type: String
@@ -36,11 +34,9 @@ Parameters:
 
   KeyName:
     Type: String
-    Default: promcom-keypair
 
   VpcId:
     Type: String
-    Default: ''
 
   SSLCertificateId:
     Type: String
