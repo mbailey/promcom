@@ -13,7 +13,7 @@ set -eu -o pipefail
 config_file="${1:-}"
 if [[ -f $config_file ]]; then
   shift 1
-  export $(cat "$config_file")
+  source "$config_file"
 else
   echo >&2 "Usage: ./script/ssh config/TARGET_FILE [command to run]"
   exit 1
