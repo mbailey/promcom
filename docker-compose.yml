@@ -72,9 +72,10 @@ services:
       - back-tier
     command: --config.file=/blackbox/config.yml
 
-  nginx_static:
+  nginx:
     image: nginx
     ports:
       - 80:80
     volumes:
       - ./nginx/html:/usr/share/nginx/html:ro
+      - ./nginx/etc/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
