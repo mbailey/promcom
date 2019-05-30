@@ -5,6 +5,7 @@ set -eu -o pipefail
 #
 # PROMCOM_TARGET_HOST=example.com
 # PROMCOM_SSH_PRIVATE_KEY="${HOME}/.ssh/example-key"
+# PROMCOM_BLACKBOX_TARGETS="blackbox-targets-exmaple.yml"
 #
 config_file="${1:-}"
 if [[ -f $config_file ]]; then
@@ -18,7 +19,10 @@ fi
 echo
 echo "# Syncing this repo with promcom ec2 instance"
 rsync -avz                                                                     \
+  --delete-excluded                                                            \
   --exclude .git                                                               \
+  --include "$PROMCOM_BLACKBOX_TARGETS"                                        \
+  --exclude 'prometheus/blackbox*'                                             \
   -e "ssh -o 'IdentitiesOnly yes' -o 'IdentityFile $PROMCOM_SSH_PRIVATE_KEY' " \
   .                                                                            \
   "ec2-user@$PROMCOM_TARGET_HOST:promcom/"
@@ -30,9 +34,9 @@ if [[ ${1:-} == '--provision' || ${1:-} == '-p' ]]; then
   ./script/promcom-ssh "$config_file" sudo promcom/script/install-docker.sh
 fi
 
-echo
-echo "# Running docker-compose pull"
-./script/promcom-ssh "$config_file" docker-compose --file promcom/docker-compose.yml pull
+# echo
+# echo "# Running docker-compose pull"
+# ./script/promcom-ssh "$config_file" docker-compose --file promcom/docker-compose.yml pull
 echo
 echo "# Running docker-compose up"
 ./script/promcom-ssh "$config_file" docker-compose --file promcom/docker-compose.yml up --detach

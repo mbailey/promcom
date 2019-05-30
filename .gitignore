@@ -4,3 +4,5 @@ config/*
 !config/example-target
 cloudformation/params/*
 !cloudformation/params/promcom-params-skeleton.json
+prometheus/blackbox-targets-*
+!prometheus/blackbox-targets-example.yml
