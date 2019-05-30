@@ -46,6 +46,11 @@ The key's randomart image is:
 
 ### Create CloudFormation stack
 
+1. **Change to the cloudformation directory**
+    ```
+    $ cd cloudformation
+    ```
+
 1. **Create and edit a new file with CloudFormation Parameters**
 
     ```
@@ -62,7 +67,6 @@ The key's randomart image is:
 1. **Deploy CloudFormation Stack**
 
     ```
-    $ cd cloudformation
     $ stack-create params/promcom-params-example.yml --capabilities=CAPABILITY_IAM
     ```
 
