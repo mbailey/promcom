@@ -1,6 +1,15 @@
 TODO
 ====
 
+- sudo bash -c "
+- curl --retry 120 --retry-delay 1 # -qsS4f
+- install-docker s/service/systemctl/
+- use long args for all commands
+- add `--hard-links` to rsync
+- restrict AmazonEC2ReadOnlyAccess
+  - identify what's needed by Prometheus
+  - ELB SG Egreee allow all to target:InstanceSecurityGroup
+
 - restrict ec2_sd to same VPC
 - keypair-create can upload existing key if it finds or is given one
 - PushGateway
