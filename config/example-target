@@ -1,2 +1,3 @@
 PROMCOM_TARGET_HOST=metrics.example.com
 PROMCOM_SSH_PRIVATE_KEY="~/.ssh/promcom-example"
+PROMCOM_BLACKBOX_TARGETS="prometheus/blackbox-targets-example.yml"
