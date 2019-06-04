@@ -1,19 +1,22 @@
 TODO
 ====
 
-- sudo bash -c "
-- curl --retry 120 --retry-delay 1 # -qsS4f
-- install-docker s/service/systemctl/
-- use long args for all commands
-- add `--hard-links` to rsync
+- restrict prometheus to pulling metrics, not accessing api
+- create SecurityGroup that targets should have attached to make reachable
+- configure BlackBox outside of main config
+
+x curl --retry 120 --retry-delay 1 # -qsS4f
+x install-docker s/service/systemctl/
 - restrict AmazonEC2ReadOnlyAccess
   - identify what's needed by Prometheus
   - ELB SG Egreee allow all to target:InstanceSecurityGroup
+- add `--hard-links` to rsync
+- use long args for all commands
 
 - restrict ec2_sd to same VPC
 - keypair-create can upload existing key if it finds or is given one
 - PushGateway
-- KMS encrypt passwords
+- encrypt (KMS?) passwords
 
 - document how to use with ec2 discovery
   - document how to get security group
