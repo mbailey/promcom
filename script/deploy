@@ -21,7 +21,7 @@ echo "# Syncing this repo with promcom ec2 instance"
 rsync -avz                                                                     \
   --delete-excluded                                                            \
   --exclude .git                                                               \
-  --include "$PROMCOM_BLACKBOX_TARGETS"                                        \
+  --include "${PROMCOM_BLACKBOX_TARGETS:-no_blackbox_targets_specified}"       \
   --exclude 'prometheus/blackbox*'                                             \
   -e "ssh -o 'IdentitiesOnly yes' -o 'IdentityFile $PROMCOM_SSH_PRIVATE_KEY' " \
   .                                                                            \
