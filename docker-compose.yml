@@ -77,6 +77,9 @@ services:
     image: nginx
     ports:
       - 80:80
+    networks:
+      - back-tier
+      - front-tier
     volumes:
       - ./nginx/html:/usr/share/nginx/html:ro
       - ./nginx/etc/nginx/nginx.conf:/etc/nginx/nginx.conf:ro

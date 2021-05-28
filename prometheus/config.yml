@@ -28,6 +28,10 @@ alerting:
 scrape_configs:
   # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
 
+  - job_name: 'nginx'
+    static_configs:
+         - targets: ['nginx:80']
+
   - job_name: 'prometheus'
 
     # Override the global default and scrape targets from this job every 5 seconds.
