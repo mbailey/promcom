@@ -56,10 +56,9 @@ your instances.
 
 1. **Tag your application's EC2 instances**
 
-    These should be configured through Shipper config. Prometheus service discover
-    (SD) monitors EC2 instances every minute and will scrape any instance with a
-    Tag whose name starts with `prometheus`. You may as well add both of the tags
-    below to make it more obvious to people where to find the endpoint.
+    Prometheus service discovery (SD) monitors EC2 instances every minute and will
+    scrape any instance with a Tag whose name starts with `prometheus`. You may as
+    well add both of the tags below to make it more obvious to people where to find the endpoint.
 
     Tag Name        | Value    | Description
     ---             | ---      | ---

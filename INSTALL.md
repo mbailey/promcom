@@ -67,7 +67,7 @@ The key's randomart image is:
 1. **Deploy CloudFormation Stack**
 
     ```
-    $ stack-create params/promcom-params-example.yml --capabilities=CAPABILITY_IAM
+    $ stack-create params/promcom-params-example.json --capabilities=CAPABILITY_IAM
     ```
 
 1. **Get hostname of the ELB**
