@@ -1,4 +1,4 @@
-version: '3.1'
+version: '3.8'
 
 volumes:
     prometheus_data: {}
@@ -24,6 +24,7 @@ services:
     links:
       - alertmanager:alertmanager
       - blackbox_exporter
+      - node_exporter
     ports:
       - 9090:9090
     networks:
@@ -31,7 +32,7 @@ services:
     restart: always
 
   grafana:
-    image: grafana/grafana
+    image: grafana/grafana #:8.0.0-beta2
     user: "104"
     depends_on:
       - prometheus
@@ -79,3 +80,17 @@ services:
     volumes:
       - ./nginx/html:/usr/share/nginx/html:ro
       - ./nginx/etc/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+
+  node_exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: node_exporter
+    ports:
+      - 9100:9100
+    command:
+      - '--path.rootfs=/host'
+    networks:
+      - back-tier
+    pid: host
+    restart: unless-stopped
+    volumes:
+      - '/:/host:ro,rslave'
