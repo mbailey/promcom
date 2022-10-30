@@ -1,5 +1,4 @@
-PromCom - Prometheus / docker-compose / AWS CloudFormation
-==========================================================
+# PromCom - Prometheus / docker-compose / AWS CloudFormation
 
 Prometheus is an open source metrics collection system (and much more).
 
@@ -14,13 +13,11 @@ for learning and experimentation.
 All of the components are free and open source. A benefit of using open source
 software is that we are not restricted by licensing.
 
-Inspired by https://github.com/vegasbrianc/prometheus
-
+Inspired by <https://github.com/vegasbrianc/prometheus>
 
 ## Installation
 
 See [INSTALL.md](INSTALL.md)
-
 
 ## Development
 
@@ -32,7 +29,6 @@ repo will be useful as a learning/teaching tool.
 The services are run from a [docker-compose script](docker-compose.yml) that
 uses configuration from this repo. It's been deployed using CloudFormation
 templates which live in [cloudformation/](cloudformation).
-
 
 ## How to expose a metric to Prometheus from your application
 
@@ -67,7 +63,6 @@ your instances.
 
 1. **Check the "Target List" in Prometheus web interface to see scrape status.**
 
-
 ## How to chart a metric from Prometheus in Grafana
 
 1. Login to Grafana (default login is admin/foobar)
@@ -77,4 +72,3 @@ your instances.
 [java-client]: https://github.com/prometheus/client_java
 [other-clients]: https://prometheus.io/docs/instrumenting/clientlibs/
 [prom-format]: https://github.com/prometheus/docs/blob/master/content/docs/instrumenting/exposition_formats.md
-

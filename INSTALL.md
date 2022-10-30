@@ -1,22 +1,40 @@
-Install Promcom
-===============
+# Install Promcom
 
 This is a spike to assist learning Prometheus (and friends).
-
 
 ## Prerequisites
 
 - [bash-my-aws](https://github.com/bash-my-universe/bash-my-aws): handy commands
 
+## Option 1: Setup manually on a host (fedora)
 
-## Setup from scratch on AWS
+Use these commands to setup on workstation or VM.
+
+### Install node_exporter on host (fedora)
+
+This exports host metrics and makes them available to prometheus docker container.
+
+```shell
+sudo dnf install -y golang-github-prometheus-node-exporter
+systemctl enable --now node_exporter
+```
+
+### Run containers for prometheus, grafana, etc
+
+```shell
+git clone https://github.com/mailey/promcom.git
+cd promcom
+docker compose up
+```
+
+## Option 2: Setup from scratch on AWS
 
 ### Create keypair for SSH access to instance
 
 If you choose to use an existing EC2 SSH Keypair instead, provide a reference
 to it in config/CONFIG_FILE.
 
-```
+```shell
 $ keypair-create "promcom-$(aws-account-alias)-$(region)"
 Generating public/private rsa key pair.
 Enter passphrase (empty for no passphrase):
@@ -43,18 +61,18 @@ The key's randomart image is:
 }
 ```
 
-
 ### Create CloudFormation stack
 
 1. **Change to the cloudformation directory**
-    ```
-    $ cd cloudformation
+
+    ```shell
+    cd cloudformation
     ```
 
 1. **Create and edit a new file with CloudFormation Parameters**
 
-    ```
-    $ cp params/promcom-params-skeleton.json params/promcom-params-example.json
+    ```shell
+    cp params/promcom-params-skeleton.json params/promcom-params-example.json
     ```
 
     Hints:
@@ -63,28 +81,27 @@ The key's randomart image is:
     - You probably want the InstanceSubnetId to be a private subnet
     - You probably want the ELBSubnetId to be a public subnet
 
-
 1. **Deploy CloudFormation Stack**
 
-    ```
-    $ stack-create params/promcom-params-example.json --capabilities=CAPABILITY_IAM
+    ```shell
+    stack-create params/promcom-params-example.json --capabilities=CAPABILITY_IAM
     ```
 
 1. **Get hostname of the ELB**
 
-    ```
+    ```shell
     $ stack-outputs promcom-example
     IndexURL       https://metrics.example.com/  Web page linking to services
     SecurityGroup  sg-09411fafc6c01a911          PromCom Instance Security Group
     ```
-
 
 ### Deploy the app to the instance
 
 1. **Configure local config file**
 
     It will look something like this:
-    ```
+
+    ```shell
     $ cat config/ENVIRONMENT_NAME
     PROMCOM_TARGET_HOST=metrics.example.com
     PROMCOM_SSH_PRIVATE_KEY="~/.ssh/promcom-example"
@@ -94,13 +111,11 @@ The key's randomart image is:
 
     Update the file with hostname (from `stack-outputs`) and SSH private key.
 
-
 1. **Run the deploy script with the provisioner enabled**
 
+    ```shell
+    script/deploy config/example-target --provision
     ```
-    $ script/deploy config/example-target --provision
-    ```
-
 
 ### Test it's working
 
@@ -122,7 +137,7 @@ The key's randomart image is:
 
 1. **SSH to instance**
 
-    ```
+    ```shell
     $ script/promcom-ssh config/example-target
     Last login: Mon Mar 11 00:59:15 2019 from ip-10-52-3-22.ap-southeast-2.compute.internal
 
@@ -137,10 +152,9 @@ The key's randomart image is:
 
     ```
 
-
 ### Troubleshooting
 
-**Check console output of instance**
+Check console output of instance:
 
 ```shell
 $ stack-instances promcom-foobar | instance-console
@@ -156,7 +170,7 @@ Console output for EC2 Instance i-03cce8a813d1c70a5
 ...
 ```
 
-**SSH to instance (via ELB)**
+SSH to instance (via ELB):
 
 ```shell
 $ script/promcom-ssh config/example-target
@@ -191,5 +205,5 @@ Are you sure you want to continue? y
 Now you should be able to delete the stack:
 
 ```shell
-$ stack-delete promcom-example
+stack-delete promcom-example
 ```
