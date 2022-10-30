@@ -5,6 +5,18 @@ This is a spike to assist learning Prometheus (and friends).
 ## Prerequisites
 
 - [bash-my-aws](https://github.com/bash-my-universe/bash-my-aws): handy commands
+- git
+- podman-compose (or docker-compose)
+
+### docker aliases
+
+I use podman as a drop in docker replacement but use `docker` and `docker-compose`
+commands to make these instructions easier for others who still use them.
+
+```shell
+echo "alias docker='podman'"
+echo "alias docker-compose='podman compose'"
+```
 
 ## Option 1: Setup manually on a host (fedora)
 
@@ -12,19 +24,25 @@ Use these commands to setup on workstation or VM.
 
 ### Install node_exporter on host (fedora)
 
+XXX Work out why SELinux is preventing some containers from accessing shared files
+
+```shell
+sudo setenforce 0
+```
+
 This exports host metrics and makes them available to prometheus docker container.
 
 ```shell
 sudo dnf install -y golang-github-prometheus-node-exporter
-systemctl enable --now node_exporter
+sudo systemctl enable --now node_exporter
 ```
 
 ### Run containers for prometheus, grafana, etc
 
 ```shell
-git clone https://github.com/mailey/promcom.git
+git clone https://github.com/mbailey/promcom.git
 cd promcom
-docker compose up
+docker-compose up
 ```
 
 ## Option 2: Setup from scratch on AWS

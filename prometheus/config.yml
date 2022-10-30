@@ -30,7 +30,7 @@ scrape_configs:
 
   - job_name: 'nginx'
     static_configs:
-         - targets: ['nginx:80']
+         - targets: ['nginx:8080']
 
   - job_name: 'prometheus'
 
