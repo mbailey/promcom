@@ -10,13 +10,15 @@ get_images() {
 get_compose_version() {
     local image=$1
     local compose_file=$2
-    local version
-    version=$(yq -r ".services[] | select(.image == \"$image\") | .image" "$compose_file" | grep -o ':[^"]*' || echo ":latest")
-    version=${version#:}
-    if [[ "$version" == "$image" ]]; then
-        echo "latest"
+    
+    # Get the full image string from compose file
+    local full_image=$(yq -r ".services[] | select(.image == \"$image\") | .image" "$compose_file")
+    
+    # Extract version after colon, default to "latest"
+    if [[ "$full_image" == *":"* ]]; then
+        echo "${full_image#*:}"
     else
-        echo "$version"
+        echo "latest"
     fi
 }
 
