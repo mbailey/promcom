@@ -3,8 +3,8 @@
 # Function to get images from docker-compose file
 get_images() {
     local compose_file=$1
-    # Strip docker.io/ prefix if present and return unique image names
-    yq -r '.services[].image' "$compose_file" | sed 's|^docker.io/||' | sort -u
+    # Strip docker.io/ and docker.io/library/ prefixes if present and return unique image names
+    yq -r '.services[].image' "$compose_file" | sed -e 's|^docker.io/library/||' -e 's|^docker.io/||' | sort -u
 }
 
 # Function to get version from image string
@@ -13,10 +13,17 @@ get_compose_version() {
     local compose_file=$2
     
     # Handle both with and without docker.io prefix
-    local full_image=$(yq -r ".services[] | select(.image == \"docker.io/$image\" or .image == \"$image\") | .image" "$compose_file")
+    local full_image
+    if [[ "$image" == *"/"* ]]; then
+        # For images with namespace (e.g., prom/prometheus)
+        full_image=$(yq -r ".services[] | select(.image == \"docker.io/$image\" or .image == \"$image\") | .image" "$compose_file")
+    else
+        # For official images (e.g., nginx)
+        full_image=$(yq -r ".services[] | select(.image == \"docker.io/library/$image\" or .image == \"docker.io/$image\" or .image == \"$image\") | .image" "$compose_file")
+    fi
     
     # Extract version after colon, default to "latest"
-    if [[ "$full_image" == *":"* ]]; then
+    if [[ -n "$full_image" && "$full_image" == *":"* ]]; then
         echo "${full_image#*:}"
     else
         echo "latest"
