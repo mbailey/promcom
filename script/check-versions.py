@@ -110,6 +110,10 @@ def process_compose_file(compose_file: str):
             
         print(f"{image:<30}\t{current:<20}\t{latest:<20}")
         
+        # Skip if versions are identical
+        if current == latest:
+            continue
+
         if update_all:
             update_image_version(compose_file, image, latest)
             print(f"Updated {image} to version {latest}")
