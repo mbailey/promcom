@@ -29,7 +29,6 @@ services:
 
   grafana:
     image: docker.io/grafana/grafana
-    user: "104"
     depends_on:
       - prometheus
     ports:

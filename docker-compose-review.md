@@ -85,9 +85,12 @@ Links (Note: Deprecated):
 ```yaml
   grafana:
     image: docker.io/grafana/grafana
-    user: "104"
 ```
-The user ID is specific - make sure this matches your needs. Sometimes this needs adjustment based on permissions.
+Historical note on Grafana users:
+- Pre-6.5.0 (2019): Grafana ran as root (user ID 0) by default
+- A common fix was to set user: "104" (internal grafana user)
+- Post-6.5.0: Grafana runs as non-root by default (user ID 472)
+- Current best practice: Let Grafana use its default non-root user
 
 ## General Recommendations
 
@@ -107,4 +110,4 @@ The user ID is specific - make sure this matches your needs. Sometimes this need
 
 1. The 'links' directive in Prometheus service should be removed as it's deprecated
 2. Version 3.8 is appropriate for current needs
-3. Review the Grafana user ID (104) to ensure it matches your security requirements
+3. Grafana now handles non-root user configuration automatically
