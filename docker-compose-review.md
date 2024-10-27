@@ -2,9 +2,9 @@
 
 ## Version
 ```yaml
-version: '3.8'
+version: '3.9'
 ```
-This specifies the Docker Compose file format version. 3.8 is a stable version that supports all features needed in this configuration. While 3.9 exists, there's no compelling reason to upgrade unless specific newer features are required.
+This specifies the Docker Compose file format version. 3.9 is the latest version of the v3 specification, released in October 2020. It requires Docker Engine 19.03.0+.
 
 ## Volumes
 ```yaml
