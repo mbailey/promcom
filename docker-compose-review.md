@@ -23,10 +23,24 @@ networks:
   front-tier:
   back-tier:
 ```
-Creates two custom networks:
-- front-tier: typically for external-facing services
-- back-tier: for internal communication between services
-This is a good security practice for network segregation.
+Creates two custom networks for service segregation:
+
+- front-tier: For services that need external access
+  - Currently used by: Grafana, nginx
+  - This allows these services to handle external web traffic while maintaining isolation
+
+- back-tier: For internal service communication
+  - Used by: All services (Prometheus, Grafana, Alertmanager, Blackbox, nginx)
+  - Enables secure internal communication between services
+  - Prevents direct external access to monitoring components
+
+Current benefits:
+1. Grafana and nginx can serve web traffic while keeping monitoring services private
+2. Services in back-tier can communicate without being exposed to the internet
+3. Services can be selectively added to either network based on their needs
+4. Provides a foundation for adding more services with proper isolation
+
+This network segregation is a security best practice, though currently underutilized as most services are in both networks.
 
 ## Services
 
