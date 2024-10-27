@@ -53,9 +53,25 @@ get_latest_stable_version() {
         head -n 1 || echo "No version found"
 }
 
+# Function to update image version in compose file
+update_image_version() {
+    local compose_file=$1
+    local image=$2
+    local new_version=$3
+    
+    # Create a temporary file
+    local tmp_file=$(mktemp)
+    
+    # Update the image version
+    sed "s|image: ${image}:*.*|image: ${image}:${new_version}|" "$compose_file" > "$tmp_file"
+    mv "$tmp_file" "$compose_file"
+}
+
 # Function to process compose file
 process_compose_file() {
     local compose_file=$1
+    local update_all=false
+    local update_none=false
     
     # Print header
     printf "%-30s\t%-20s\t%-20s\n" "Image" "Current Version" "Latest Stable Version"
@@ -66,6 +82,49 @@ process_compose_file() {
         current=$(get_compose_version "$image" "$compose_file")
         latest=$(get_latest_stable_version "$image")
         printf "%-30s\t%-20s\t%-20s\n" "$image" "$current" "$latest"
+        
+        if [ "$update_all" = true ]; then
+            update_image_version "$compose_file" "$image" "$latest"
+            echo "Updated $image to version $latest"
+            continue
+        fi
+        
+        if [ "$update_none" = true ]; then
+            continue
+        fi
+        
+        while true; do
+            read -p "Update $image to version $latest? (yes/no/all/none/quit) " response
+            case $response in
+                yes|YES|y|Y)
+                    update_image_version "$compose_file" "$image" "$latest"
+                    echo "Updated $image to version $latest"
+                    break
+                    ;;
+                no|NO|n|N)
+                    echo "Skipping $image"
+                    break
+                    ;;
+                all|ALL|a|A)
+                    update_all=true
+                    update_image_version "$compose_file" "$image" "$latest"
+                    echo "Updated $image to version $latest"
+                    break
+                    ;;
+                none|NONE)
+                    update_none=true
+                    echo "Skipping remaining updates"
+                    break
+                    ;;
+                quit|QUIT|q|Q)
+                    echo "Exiting..."
+                    exit 0
+                    ;;
+                *)
+                    echo "Please answer yes, no, all, none or quit"
+                    ;;
+            esac
+        done
     done < <(get_images "$compose_file")
 }
 
