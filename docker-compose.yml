@@ -1,7 +1,5 @@
 version: '3.8'
 
-network_mode: "host"
-
 volumes:
     prometheus_data: {}
     grafana_data: {}
@@ -13,7 +11,7 @@ networks:
 services:
 
   prometheus:
-    image: docker.io/prom/prometheus # :v2.1.0
+    image: docker.io/prom/prometheus
     volumes:
       - ./prometheus/:/etc/prometheus/
       - prometheus_data:/prometheus
@@ -23,10 +21,6 @@ services:
       - '--web.console.libraries=/usr/share/prometheus/console_libraries'
       - '--web.console.templates=/usr/share/prometheus/consoles'
       - '--web.enable-lifecycle'
-    links:
-      - alertmanager:alertmanager
-      - blackbox_exporter
-      # - node_exporter
     ports:
       - 9090:9090
     networks:
@@ -34,7 +28,7 @@ services:
     restart: always
 
   grafana:
-    image: docker.io/grafana/grafana #:8.0.0-beta2
+    image: docker.io/grafana/grafana
     user: "104"
     depends_on:
       - prometheus
