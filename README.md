@@ -5,7 +5,7 @@ Prometheus is an open source metrics collection system (and much more).
 This project provides a simple way to deploy Prometheus and related services to AWS
 for learning and experimentation.
 
-![](2024-10-27-17-30-29.png)
+![Dashboard overview showing Prometheus, Grafana, and other monitoring services](assets/dashboard-overview.png)
 
 ## Quick Start
 
