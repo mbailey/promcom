@@ -12,6 +12,11 @@ services:
 
   prometheus:
     image: docker.io/prom/prometheus
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     volumes:
       - ./prometheus/:/etc/prometheus/
       - prometheus_data:/prometheus
@@ -29,13 +34,18 @@ services:
 
   grafana:
     image: docker.io/grafana/grafana
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     depends_on:
       - prometheus
     ports:
       - 3000:3000
     volumes:
-      - grafana_data:/var/lib/grafana
-      - ./grafana/provisioning/:/etc/grafana/provisioning/
+      - grafana_data:/var/lib/grafana:rw
+      - ./grafana/provisioning/:/etc/grafana/provisioning/:ro
     env_file:
       - ./grafana/config.env
     networks:
