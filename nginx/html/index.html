@@ -71,6 +71,23 @@
             color: white;
             transform: translateY(-2px);
         }
+
+        .health-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 10px;
+            background-color: #gray;
+        }
+
+        .health-up {
+            background-color: #4caf50;
+        }
+
+        .health-down {
+            background-color: #f44336;
+        }
         
         @media (max-width: 600px) {
             .container {
@@ -94,12 +111,12 @@
         <ul class="services-list">
             <script>
                 const services = [
-                    { port: '3000', name: 'Grafana' },
-                    { port: '9090', name: 'Prometheus' },
-                    { port: '9093', name: 'Alertmanager' },
-                    { port: '9100', name: 'Node Exporter /metrics' },
-                    { port: '9115', name: 'Blackbox Exporter' },
-                    { port: '8080', path: '/metrics', name: 'Nginx /metrics' }
+                    { port: '3000', name: 'Grafana', healthEndpoint: '/api/health' },
+                    { port: '9090', name: 'Prometheus', healthEndpoint: '/-/healthy' },
+                    { port: '9093', name: 'Alertmanager', healthEndpoint: '/-/healthy' },
+                    { port: '9100', name: 'Node Exporter', healthEndpoint: '/metrics' },
+                    { port: '9115', name: 'Blackbox Exporter', healthEndpoint: '/health' },
+                    { port: '8080', path: '/metrics', name: 'Nginx', healthEndpoint: '/metrics' }
                 ];
 
                 services.forEach(service => {
@@ -108,8 +125,39 @@
                         : service.port 
                             ? window.location.protocol + '//' + window.location.hostname + ':' + service.port
                             : window.location.protocol + '//' + window.location.hostname + service.path;
-                    document.write(`<li><a href="${href}">${service.name}</a></li>`);
+                    const serviceId = service.name.toLowerCase().replace(/\s+/g, '-');
+                    document.write(`
+                        <li>
+                            <a href="${href}">
+                                <span id="${serviceId}-health" class="health-indicator"></span>
+                                ${service.name}
+                            </a>
+                        </li>
+                    `);
                 });
+
+                // Health check function
+                async function checkHealth(service) {
+                    const serviceId = service.name.toLowerCase().replace(/\s+/g, '-');
+                    const indicator = document.getElementById(`${serviceId}-health`);
+                    
+                    try {
+                        const healthUrl = window.location.protocol + '//' + window.location.hostname + ':' + service.port + service.healthEndpoint;
+                        const response = await fetch(healthUrl);
+                        indicator.className = 'health-indicator ' + (response.ok ? 'health-up' : 'health-down');
+                    } catch (error) {
+                        indicator.className = 'health-indicator health-down';
+                    }
+                }
+
+                // Check health status periodically
+                function updateHealthStatus() {
+                    services.forEach(checkHealth);
+                }
+
+                // Initial check and set interval
+                updateHealthStatus();
+                setInterval(updateHealthStatus, 30000); // Check every 30 seconds
             </script>
         </ul>
     </div>
