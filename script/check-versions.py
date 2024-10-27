@@ -74,25 +74,23 @@ def get_latest_stable_version(image: str) -> Optional[str]:
 def update_image_version(compose_file: str, image: str, new_version: str):
     """Update image version in compose file."""
     with open(compose_file) as f:
-        content = f.read()
-    
-    # Handle different possible image formats
-    patterns = [
-        f"image: {image}:.*",
-        f"image: docker.io/{image}:.*",
-        f"image: docker.io/library/{image}:.*"
-    ]
-    
-    for pattern in patterns:
-        new_content = re.sub(
-            pattern,
-            f"image: docker.io/{image}:{new_version}",
-            content
-        )
-        if new_content != content:
-            with open(compose_file, 'w') as f:
-                f.write(new_content)
-            return
+        compose_data = yaml.safe_load(f)
+
+    # Find and update the matching service
+    for service in compose_data.get('services', {}).values():
+        service_image = service.get('image', '')
+        # Strip version if present
+        base_image = service_image.split(':')[0] if ':' in service_image else service_image
+        
+        # Check against possible formats
+        if (base_image == image or 
+            base_image == f"docker.io/{image}" or 
+            base_image == f"docker.io/library/{image}"):
+            service['image'] = f"docker.io/{image}:{new_version}"
+
+    # Write back to file with proper formatting
+    with open(compose_file, 'w') as f:
+        yaml.dump(compose_data, f, default_flow_style=False, sort_keys=False)
 
 def process_compose_file(compose_file: str):
     """Process docker-compose file and handle version updates."""
