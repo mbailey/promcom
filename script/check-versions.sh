@@ -12,8 +12,8 @@ get_compose_version() {
     local image=$1
     local compose_file=$2
     
-    # Get the full image string from compose file
-    local full_image=$(yq -r ".services[] | select(.image == \"$image\") | .image" "$compose_file")
+    # Handle both with and without docker.io prefix
+    local full_image=$(yq -r ".services[] | select(.image == \"docker.io/$image\" or .image == \"$image\") | .image" "$compose_file")
     
     # Extract version after colon, default to "latest"
     if [[ "$full_image" == *":"* ]]; then
