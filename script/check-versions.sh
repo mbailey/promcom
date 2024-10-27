@@ -26,8 +26,13 @@ get_latest_stable_version() {
     local repo=${image#docker.io/}
     local api_response
     
-    # Get API response and store it
-    api_response=$(curl -s "https://registry.hub.docker.com/v2/repositories/${repo}/tags?page_size=100")
+    # Handle official images differently
+    if [[ "$repo" != *"/"* ]]; then
+        # Official images use library/ prefix
+        api_response=$(curl -s "https://registry.hub.docker.com/v2/repositories/library/${repo}/tags?page_size=100")
+    else
+        api_response=$(curl -s "https://registry.hub.docker.com/v2/repositories/${repo}/tags?page_size=100")
+    fi
     
     # Debug output - only show version tags
     echo "DEBUG: Version tags for $repo:" >&2
