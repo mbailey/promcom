@@ -3,7 +3,8 @@
 # Function to get images from docker-compose file
 get_images() {
     local compose_file=$1
-    yq -r '.services[].image' "$compose_file" | sort -u
+    # Strip docker.io/ prefix if present and return unique image names
+    yq -r '.services[].image' "$compose_file" | sed 's|^docker.io/||' | sort -u
 }
 
 # Function to get version from image string
