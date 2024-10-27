@@ -24,9 +24,26 @@ get_compose_version() {
 get_latest_stable_version() {
     local image=$1
     local repo=${image#docker.io/}
-    # Get all tags and find the first one that looks like a version number
-    curl -s "https://registry.hub.docker.com/v2/repositories/${repo}/tags?page_size=100" | \
-        jq -r '.results[].name' | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1
+    local api_response
+    
+    # Get API response and store it
+    api_response=$(curl -s "https://registry.hub.docker.com/v2/repositories/${repo}/tags?page_size=100")
+    
+    # Debug output
+    echo "DEBUG: API response for $repo:" >&2
+    echo "$api_response" | jq '.' >&2
+    
+    # Check if we got a valid response
+    if [ -z "$api_response" ] || [ "$api_response" = "null" ]; then
+        echo "Error: No response from Docker Hub for $repo" >&2
+        return 1
+    fi
+    
+    # Process the response
+    echo "$api_response" | \
+        jq -r '.results[].name' 2>/dev/null | \
+        grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$' | \
+        head -n 1 || echo "No version found"
 }
 
 # Function to process compose file
