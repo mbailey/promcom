@@ -99,7 +99,7 @@
                     { port: '9093', name: 'Alertmanager' },
                     { port: '9100', name: 'Node Exporter /metrics' },
                     { port: '9115', name: 'Blackbox Exporter' },
-                    { path: '/metrics', name: 'Nginx /metrics' }
+                    { port: '8080', path: '/metrics', name: 'Nginx /metrics' }
                 ];
 
                 services.forEach(service => {
