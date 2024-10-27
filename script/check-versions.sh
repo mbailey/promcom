@@ -19,11 +19,17 @@ get_compose_version() {
         full_image=$(yq -r ".services[] | select(.image == \"docker.io/$image\" or .image == \"$image\") | .image" "$compose_file")
     else
         # For official images (e.g., nginx)
-        full_image=$(yq -r ".services[] | select(.image == \"docker.io/library/$image\" or .image == \"docker.io/$image\" or .image == \"$image\") | .image" "$compose_file")
+        full_image=$(yq -r ".services[] | select(.image == \"docker.io/library/$image\" or .image == \"$image\" or .image == \"library/$image\") | .image" "$compose_file")
+    fi
+    
+    # If no match found, return latest
+    if [[ "$full_image" == "null" || -z "$full_image" ]]; then
+        echo "latest"
+        return
     fi
     
     # Extract version after colon, default to "latest"
-    if [[ -n "$full_image" && "$full_image" == *":"* ]]; then
+    if [[ "$full_image" == *":"* ]]; then
         echo "${full_image#*:}"
     else
         echo "latest"
