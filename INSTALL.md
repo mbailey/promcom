@@ -20,30 +20,37 @@ echo "alias docker-compose='podman compose'"
 
 ## Option 1: Setup manually on a host (fedora)
 
-Use these commands to setup on workstation or VM.
+This setup uses containers for all services (Prometheus, Grafana, etc) except for node_exporter, which runs directly on the host to collect system metrics.
 
-### Install node_exporter on host (fedora)
+### 1. Install node_exporter on host
 
-XXX Work out why SELinux is preventing some containers from accessing shared files
-
-```shell
-sudo setenforce 0
-```
-
-This exports host metrics and makes them available to prometheus docker container.
+node_exporter needs to run directly on the host to access system metrics:
 
 ```shell
 sudo dnf install -y golang-github-prometheus-node-exporter
 sudo systemctl enable --now node_exporter
 ```
 
-### Run containers for prometheus, grafana, etc
+Note: If SELinux is preventing containers from accessing shared files:
+```shell
+sudo setenforce 0
+```
+
+### 2. Run containerized services
+
+All other services (Prometheus, Grafana, etc) run in containers:
 
 ```shell
 git clone https://github.com/mbailey/promcom.git
 cd promcom
 docker-compose up
 ```
+
+This will start containers for:
+- Prometheus (metrics collection)
+- Grafana (visualization)
+- Alertmanager (alerts)
+- Blackbox exporter (external probing)
 
 ## Option 2: Setup from scratch on AWS
 
