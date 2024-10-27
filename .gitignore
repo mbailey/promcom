@@ -6,3 +6,5 @@ cloudformation/params/*
 !cloudformation/params/promcom-params-skeleton.json
 prometheus/blackbox-targets-*
 !prometheus/blackbox-targets-example.yml
+.aider*
+.env

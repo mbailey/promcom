@@ -2,7 +2,7 @@
 global:
   scrape_interval:     15s # By default, scrape targets every 15 seconds.
   evaluation_interval: 15s # By default, scrape targets every 15 seconds.
-  # scrape_timeout is set to the global default (10s).
+  scrape_timeout: 10s     # Global scrape timeout
 
   # Attach these labels to any time series or alerts when communicating with
   # external systems (federation, remote storage, Alertmanager).
@@ -30,7 +30,7 @@ scrape_configs:
 
   - job_name: 'nginx'
     static_configs:
-         - targets: ['nginx:8080']
+         - targets: ['nginx:80']
 
   - job_name: 'prometheus'
 
@@ -42,7 +42,13 @@ scrape_configs:
 
   - job_name: node
     static_configs:
-      - targets: ['host.containers.internal:9100']
+      - targets:
+        - 'node-exporter:9100'               # When using host network mode
+    relabel_configs:
+      # Keep only targets that successfully respond
+      - source_labels: [__address__]
+        action: keep
+        regex: (.+)
 
   - job_name: 'grafana'
 

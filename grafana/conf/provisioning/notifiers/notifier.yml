@@ -1,0 +1,25 @@
+apiVersion: 1
+
+deleteDatasources: []
+
+notifiers:
+  - name: Email
+    type: email
+    uid: notifier1
+    # Either enable/disable with true/false
+    is_default: true
+    # Disable sending notifications
+    disable_resolve_message: false
+    # Settings for notification
+    settings:
+      addresses: team@example.com
+      
+  - name: Slack
+    type: slack
+    uid: notifier2
+    is_default: false
+    disable_resolve_message: false
+    settings:
+      url: https://hooks.slack.com/services/EXAMPLE/WEBHOOK/URL
+      # Slack channel override
+      recipient: "#alerts"

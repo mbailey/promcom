@@ -2,37 +2,43 @@ version: '3.9'
 volumes:
   prometheus_data: {}
   grafana_data: {}
+
 networks:
   front-tier: null
   back-tier: null
+
+x-common: &common
+  restart: always
+
 services:
-  prometheus:
-    image: docker.io/prom/prometheus:v2.55.0
-    healthcheck:
-      test:
-      - CMD
-      - wget
-      - --spider
-      - -q
-      - http://localhost:9090/-/healthy
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    volumes:
-    - ./prometheus/:/etc/prometheus/
-    - prometheus_data:/prometheus
-    command:
-    - --config.file=/etc/prometheus/config.yml
-    - --storage.tsdb.path=/prometheus
-    - --web.console.libraries=/usr/share/prometheus/console_libraries
-    - --web.console.templates=/usr/share/prometheus/consoles
-    - --web.enable-lifecycle
+
+  alertmanager:
+    <<: *common
+    image: docker.io/prom/alertmanager:v0.27.0
     ports:
-    - 9090:9090
+    - 9093:9093
+    volumes:
+    - ./alertmanager/:/etc/alertmanager/
     networks:
     - back-tier
-    restart: always
+    command:
+    - --config.file=/etc/alertmanager/config.yml
+    - --storage.path=/alertmanager
+
+  blackbox_exporter:
+    <<: *common
+    image: docker.io/prom/blackbox-exporter:v0.25.0
+    dns: 1.1.1.1
+    ports:
+    - 9115:9115
+    volumes:
+    - ./blackbox:/blackbox
+    networks:
+    - back-tier
+    command: --config.file=/blackbox/config.yml
+
   grafana:
+    <<: *common
     image: docker.io/grafana/grafana:11.3.0
     healthcheck:
       test:
@@ -50,37 +56,25 @@ services:
     - 3000:3000
     volumes:
     - grafana_data:/var/lib/grafana:rw
-    - ./grafana/provisioning/:/etc/grafana/provisioning/:ro
+    - ./grafana/conf/provisioning/:/etc/grafana/provisioning/:ro
+    - ./grafana/conf/defaults.ini:/etc/grafana/grafana.ini:ro
+    - ${AWS_SHARED_CREDENTIALS_FILE:-~/.aws}:/root/.aws:ro
+    environment:
+      - AWS_REGION
+      - AWS_DEFAULT_REGION
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_SESSION_TOKEN
+      - AWS_PROFILE
+      - AWS_SHARED_CREDENTIALS_FILE
     env_file:
     - ./grafana/config.env
     networks:
     - back-tier
     - front-tier
-    restart: always
-  alertmanager:
-    image: docker.io/prom/alertmanager:v0.27.0
-    ports:
-    - 9093:9093
-    volumes:
-    - ./alertmanager/:/etc/alertmanager/
-    networks:
-    - back-tier
-    restart: always
-    command:
-    - --config.file=/etc/alertmanager/config.yml
-    - --storage.path=/alertmanager
-  blackbox_exporter:
-    image: docker.io/prom/blackbox-exporter:v0.25.0
-    dns: 1.1.1.1
-    restart: always
-    ports:
-    - 9115:9115
-    volumes:
-    - ./blackbox:/blackbox
-    networks:
-    - back-tier
-    command: --config.file=/blackbox/config.yml
+
   nginx:
+    <<: *common
     image: docker.io/nginx:1.27.2
     ports:
     - 8080:80
@@ -90,3 +84,51 @@ services:
     volumes:
     - ./nginx/html:/usr/share/nginx/html:ro
     - ./nginx/etc/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+
+  # node-exporter:
+  #   <<: *common
+  #   image: quay.io/prometheus/node-exporter:latest
+  #   volumes:
+  #     - /proc:/host/proc:ro
+  #     - /sys:/host/sys:ro
+  #     - /:/rootfs:ro
+  #     - /:/host:ro,rslave
+  #   command: 
+  #     - '--path.rootfs=/host'
+  #     - '--path.procfs=/host/proc' 
+  #     - '--path.sysfs=/host/sys'
+  #     - --collector.filesystem.ignored-mount-points
+  #     - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
+  #   ports:
+  #     - 9100:9100
+  #   networks:
+  #     - back-tier
+
+  prometheus:
+    <<: *common
+    image: docker.io/prom/prometheus:v2.55.0
+    healthcheck:
+      test:
+      - CMD
+      - wget
+      - --spider
+      - -q
+      - http://localhost:9090/-/healthy
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+    - ./prometheus/:/etc/prometheus/
+    - prometheus_data:/prometheus
+    extra_hosts:
+      - "node-exporter:host-gateway"
+    command:
+    - --config.file=/etc/prometheus/config.yml
+    - --storage.tsdb.path=/prometheus
+    - --web.console.libraries=/usr/share/prometheus/console_libraries
+    - --web.console.templates=/usr/share/prometheus/consoles
+    - --web.enable-lifecycle
+    ports:
+    - 9090:9090
+    networks:
+      - back-tier
