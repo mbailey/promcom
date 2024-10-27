@@ -121,29 +121,29 @@ def process_compose_file(compose_file: str):
             continue
             
         while True:
-            response = input(f"Update {image} to version {latest}? (yes/no/all/none/quit) ").lower()
+            response = input(f"Update {image} to version {latest}? [Y/n/a/N/q] ").lower()
             
-            if response in ['yes', 'y']:
+            if response == '' or response == 'y':
                 update_image_version(compose_file, image, latest)
                 print(f"Updated {image} to version {latest}")
                 break
-            elif response in ['no', 'n']:
+            elif response == 'n':
                 print(f"Skipping {image}")
                 break
-            elif response in ['all', 'a']:
+            elif response == 'a':
                 update_all = True
                 update_image_version(compose_file, image, latest)
                 print(f"Updated {image} to version {latest}")
                 break
-            elif response in ['none']:
+            elif response == 'N':
                 update_none = True
                 print("Skipping remaining updates")
                 break
-            elif response in ['quit', 'q']:
+            elif response == 'q':
                 print("Exiting...")
                 sys.exit(0)
             else:
-                print("Please answer yes, no, all, none or quit")
+                print("Please answer: Y (default), n (no), a (all), N (none), q (quit)")
 
 def main():
     """Main entry point."""
