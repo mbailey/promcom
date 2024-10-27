@@ -5,6 +5,16 @@ Prometheus is an open source metrics collection system (and much more).
 This project provides a simple way to deploy Prometheus and related services to AWS
 for learning and experimentation.
 
+## Quick Start
+
+```shell
+git clone https://github.com/mbailey/promcom.git
+cd promcom
+docker-compose up -d
+```
+
+Then open http://localhost:8080 in your browser to access the services dashboard.
+
 - **Prometheus**: Time series database to collect (pull) metrics from systems and services.
 - **Blackbox Exporter**: Makes requests (http/https, ping, other) on behalf of Prometheus
 - **Grafana**: Web based data visualisation tool.
