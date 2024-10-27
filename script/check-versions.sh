@@ -33,10 +33,12 @@ get_latest_stable_version() {
     else
         api_response=$(curl -s "https://registry.hub.docker.com/v2/repositories/${repo}/tags?page_size=100")
     fi
-    
-    # Debug output - only show version tags
-    echo "DEBUG: Version tags for $repo:" >&2
-    echo "$api_response" | jq -r '.results[].name' 2>/dev/null | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$' >&2
+
+    if [[ -n $DEBUG ]]; then 
+        # Debug output - only show version tags
+        echo "DEBUG: Version tags for $repo:" >&2
+        echo "$api_response" | jq -r '.results[].name' 2>/dev/null | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$' >&2
+    fi
     
     # Check if we got a valid response
     if [ -z "$api_response" ] || [ "$api_response" = "null" ]; then
