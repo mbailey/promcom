@@ -4,7 +4,7 @@
 ```yaml
 version: '3.8'
 ```
-This specifies the Docker Compose file format version. 3.8 is relatively recent but not the newest (latest is 3.9). It's fine for most uses, but you could update to 3.9 if you want the newest features.
+This specifies the Docker Compose file format version. 3.8 is a stable version that supports all features needed in this configuration. While 3.9 exists, there's no compelling reason to upgrade unless specific newer features are required.
 
 ## Volumes
 ```yaml
@@ -92,5 +92,5 @@ The user ID is specific - make sure this matches your needs. Sometimes this need
 ## Maintenance Notes
 
 1. The 'links' directive in Prometheus service should be removed as it's deprecated
-2. Consider upgrading to compose file version 3.9
+2. Version 3.8 is appropriate for current needs
 3. Review the Grafana user ID (104) to ensure it matches your security requirements
