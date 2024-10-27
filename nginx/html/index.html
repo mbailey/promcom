@@ -103,9 +103,11 @@
                 ];
 
                 services.forEach(service => {
-                    const href = service.port 
-                        ? window.location.protocol + '//' + window.location.hostname + ':' + service.port
-                        : window.location.protocol + '//' + window.location.hostname + service.path;
+                    const href = service.port && service.path
+                        ? window.location.protocol + '//' + window.location.hostname + ':' + service.port + service.path
+                        : service.port 
+                            ? window.location.protocol + '//' + window.location.hostname + ':' + service.port
+                            : window.location.protocol + '//' + window.location.hostname + service.path;
                     document.write(`<li><a href="${href}">${service.name}</a></li>`);
                 });
             </script>
