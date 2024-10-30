@@ -6,13 +6,9 @@ networks:
   front-tier: null
   back-tier: null
 
-x-common: &common
-  restart: always
-
 services:
 
   alertmanager:
-    <<: *common
     image: docker.io/prom/alertmanager:v0.27.0
     ports:
     - 9093:9093
@@ -25,7 +21,6 @@ services:
     - --storage.path=/alertmanager
 
   blackbox_exporter:
-    <<: *common
     image: docker.io/prom/blackbox-exporter:v0.25.0
     dns: 1.1.1.1
     ports:
@@ -37,7 +32,6 @@ services:
     command: --config.file=/blackbox/config.yml
 
   grafana:
-    <<: *common
     image: docker.io/grafana/grafana:11.3.0
     healthcheck:
       test:
@@ -57,7 +51,7 @@ services:
     - grafana_data:/var/lib/grafana:rw
     - ./grafana/conf/provisioning/:/etc/grafana/provisioning/:ro
     - ./grafana/conf/defaults.ini:/etc/grafana/grafana.ini:ro
-    - ${AWS_SHARED_CREDENTIALS_FILE:-~/.aws}:/root/.aws:ro
+    - ${AWS_SHARED_CREDENTIALS_FILE:-~/.aws/credentials}:/root/.aws:ro
     environment:
       - AWS_REGION
       - AWS_DEFAULT_REGION
@@ -73,7 +67,6 @@ services:
     - front-tier
 
   nginx:
-    <<: *common
     image: docker.io/nginx:1.27.2
     ports:
     - 8080:80
@@ -104,7 +97,6 @@ services:
   #     - back-tier
 
   prometheus:
-    <<: *common
     image: docker.io/prom/prometheus:v2.55.0
     healthcheck:
       test:
