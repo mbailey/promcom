@@ -84,15 +84,3 @@ your instances.
 [java-client]: https://github.com/prometheus/client_java
 [other-clients]: https://prometheus.io/docs/instrumenting/clientlibs/
 [prom-format]: https://github.com/prometheus/docs/blob/master/content/docs/instrumenting/exposition_formats.md
-## Host Metrics Collection
-This setup supports collecting metrics from the host machine in multiple environments:
-
-- Docker Desktop (Mac/Windows): Uses `host.docker.internal`
-- Podman: Uses `host.containers.internal`
-- Linux with Docker: Uses host gateway mapping
-- Alternative: Can use host network mode by uncommenting `network_mode: "host"` in docker-compose.yml
-
-If you experience connectivity issues, try one of these approaches:
-1. Use the default configuration
-2. Uncomment the `network_mode: "host"` line in docker-compose.yml and comment out the ports/networks sections
-3. Replace the hostname with your actual host IP address
