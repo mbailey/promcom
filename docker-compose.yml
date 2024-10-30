@@ -51,8 +51,7 @@ services:
     - grafana_data:/var/lib/grafana:rw
     - ./grafana/conf/provisioning/:/etc/grafana/provisioning/:ro
     - ./grafana/conf/defaults.ini:/etc/grafana/grafana.ini:ro
-    - ${AWS_SHARED_CREDENTIALS_FILE}:${AWS_SHARED_CREDENTIALS_FILE}:ro
-    - ${HOME}/.aws/credentials:/home/grafana/.aws/credentials:ro
+    - ${AWS_SHARED_CREDENTIALS_FILE:-~/.aws/credentials}:${AWS_SHARED_CREDENTIALS_FILE:-/home/grafana/.aws/credentials}:ro
     environment:
       - AWS_REGION
       - AWS_DEFAULT_REGION
