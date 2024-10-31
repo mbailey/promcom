@@ -6,9 +6,9 @@
     <string>com.podman.machine</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/opt/homebrew/bin/podman</string>
-        <string>machine</string>
-        <string>start</string>
+        <string>/bin/bash</string>
+        <string>-c</string>
+        <string>sleep 10 && /opt/homebrew/bin/podman machine start</string>
     </array>
     <key>RunAtLoad</key>
     <true/>
@@ -16,5 +16,7 @@
     <string>/tmp/podman.machine.err</string>
     <key>StandardOutPath</key>
     <string>/tmp/podman.machine.out</string>
+    <key>UserName</key>
+    <string>root</string>
 </dict>
 </plist>

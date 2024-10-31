@@ -67,7 +67,7 @@ services:
     - front-tier
 
   nginx:
-    image: docker.io/nginx:1.27.2
+    image: docker.io/nginx:1.25.3
     ports:
     - 8080:80
     networks:
